@@ -1,8 +1,8 @@
 # UpdateBetterBot
 
-Version: `v1.0.0`
+Version: `v1.0.1`
 
-`UpdateBetterBot` is a Windows updater that syncs files from `Qwepplz/Betterbot` into the folder that contains `UpdateBetterBot.exe`. The target machine does not need Git; the updater reads repository metadata and file contents directly over HTTPS, trying Gitee first and GitHub second.
+`UpdateBetterBot` is a Windows updater that syncs files from `Qwepplz/Betterbot` into the folder that contains `UpdateBetterBot.exe`. The target machine does not need Git; the updater reads repository metadata and file contents directly over HTTPS, trying GitHub first and Gitee second.
 
 ## Contents
 
@@ -47,9 +47,9 @@ Version: `v1.0.0`
 
 | Data | First source | Second source |
 | --- | --- | --- |
-| Repository metadata | `https://gitee.com/api/v5/repos/SaUrrr/Betterbot` | `https://api.github.com/repos/Qwepplz/Betterbot` |
-| Repository tree | `https://gitee.com/api/v5/repos/SaUrrr/Betterbot/git/trees/<branch>?recursive=1` | `https://api.github.com/repos/Qwepplz/Betterbot/git/trees/<branch>?recursive=1` |
-| Raw file download | `https://gitee.com/SaUrrr/Betterbot/raw/<branch>/<path>` | `https://raw.githubusercontent.com/Qwepplz/Betterbot/<branch>/<path>` |
+| Repository metadata | `https://api.github.com/repos/Qwepplz/Betterbot` | `https://gitee.com/api/v5/repos/SaUrrr/Betterbot` |
+| Repository tree | `https://api.github.com/repos/Qwepplz/Betterbot/git/trees/<branch>?recursive=1` | `https://gitee.com/api/v5/repos/SaUrrr/Betterbot/git/trees/<branch>?recursive=1` |
+| Raw file download | `https://raw.githubusercontent.com/Qwepplz/Betterbot/<branch>/<path>` | `https://gitee.com/SaUrrr/Betterbot/raw/<branch>/<path>` |
 
 - The updater first queries the default branch of the repository.
 - If default-branch lookup fails, it still tries common branch names such as `main` and `master`.
@@ -217,7 +217,7 @@ Use the resulting SHA-256 digest for release verification or pre-distribution ch
 | 目标平台 | Windows。 |
 | 目标机器依赖 | 不需要安装 Git。 |
 | 当前上游仓库 | `Qwepplz/Betterbot`。 |
-| 默认访问顺序 | 先访问 Gitee 镜像，再访问 GitHub 对应仓库。 |
+| 默认访问顺序 | 先访问 GitHub 对应仓库，再访问 Gitee 镜像。 |
 | 顺序含义 | 两组地址被视为内容应保持一致的同步入口；先后顺序只用于访问便利，不表示主备或内容优先级。 |
 
 ### 快速开始
@@ -243,9 +243,9 @@ Use the resulting SHA-256 digest for release verification or pre-distribution ch
 
 | 数据 | 第一访问入口 | 第二访问入口 |
 | --- | --- | --- |
-| 仓库信息 | `https://gitee.com/api/v5/repos/SaUrrr/Betterbot` | `https://api.github.com/repos/Qwepplz/Betterbot` |
-| 仓库树 | `https://gitee.com/api/v5/repos/SaUrrr/Betterbot/git/trees/<branch>?recursive=1` | `https://api.github.com/repos/Qwepplz/Betterbot/git/trees/<branch>?recursive=1` |
-| 原始文件下载 | `https://gitee.com/SaUrrr/Betterbot/raw/<branch>/<path>` | `https://raw.githubusercontent.com/Qwepplz/Betterbot/<branch>/<path>` |
+| 仓库信息 | `https://api.github.com/repos/Qwepplz/Betterbot` | `https://gitee.com/api/v5/repos/SaUrrr/Betterbot` |
+| 仓库树 | `https://api.github.com/repos/Qwepplz/Betterbot/git/trees/<branch>?recursive=1` | `https://gitee.com/api/v5/repos/SaUrrr/Betterbot/git/trees/<branch>?recursive=1` |
+| 原始文件下载 | `https://raw.githubusercontent.com/Qwepplz/Betterbot/<branch>/<path>` | `https://gitee.com/SaUrrr/Betterbot/raw/<branch>/<path>` |
 
 - 程序会先查询仓库默认分支。
 - 如果默认分支查询失败，还会继续尝试常见分支名 `main` 与 `master`。

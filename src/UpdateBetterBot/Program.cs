@@ -14,9 +14,9 @@ using System.Web.Script.Serialization;
 [assembly: AssemblyCompany("Qwepplz")]
 [assembly: AssemblyProduct("AutoupdateForBetterbot")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 Qwepplz")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
-[assembly: AssemblyInformationalVersion("v1.0.0")]
+[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyFileVersion("1.0.1.0")]
+[assembly: AssemblyInformationalVersion("v1.0.1")]
 
 internal static class UpdateBetterBotProgram
 {
@@ -180,8 +180,8 @@ internal static class UpdateBetterBotProgram
 
                     string encodedPath = ConvertToUrlPath(relativePath);
                     List<string> downloadUrls = new List<string>();
-                    downloadUrls.Add(string.Format("https://gitee.com/{0}/{1}/raw/{2}/{3}", MirrorOwner, Repo, treeResult.Branch, encodedPath));
                     downloadUrls.Add(string.Format("https://raw.githubusercontent.com/{0}/{1}/{2}/{3}", Owner, Repo, treeResult.Branch, encodedPath));
+                    downloadUrls.Add(string.Format("https://gitee.com/{0}/{1}/raw/{2}/{3}", MirrorOwner, Repo, treeResult.Branch, encodedPath));
 
                     progress.Update(
                         FormatProgressStatus("[3/4] Files", index + 1, sortedRemoteFiles.Count, string.Format("added: {0} updated: {1} unchanged: {2} | downloading", added, updated, unchanged)),
@@ -773,7 +773,7 @@ internal static class UpdateBetterBotProgram
         };
 
         JavaScriptSerializer serializer = CreateSerializer();
-        string json = serializer.Serialize(state);
+        string json = FormatJsonForReadability(serializer.Serialize(state));
         File.WriteAllText(statePath, json, new UTF8Encoding(false));
     }
 
@@ -783,6 +783,102 @@ internal static class UpdateBetterBotProgram
         serializer.MaxJsonLength = int.MaxValue;
         serializer.RecursionLimit = 256;
         return serializer;
+    }
+
+    private static string FormatJsonForReadability(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return json;
+        }
+
+        StringBuilder builder = new StringBuilder(json.Length + (json.Length / 4));
+        int indentLevel = 0;
+        bool inString = false;
+        bool escaping = false;
+        char previousNonWhitespace = '\0';
+
+        foreach (char character in json)
+        {
+            if (escaping)
+            {
+                builder.Append(character);
+                escaping = false;
+                continue;
+            }
+
+            if (inString)
+            {
+                builder.Append(character);
+                if (character == '\\')
+                {
+                    escaping = true;
+                }
+                else if (character == '"')
+                {
+                    inString = false;
+                }
+
+                continue;
+            }
+
+            switch (character)
+            {
+                case '"':
+                    builder.Append(character);
+                    inString = true;
+                    break;
+
+                case '{':
+                case '[':
+                    builder.Append(character);
+                    builder.AppendLine();
+                    indentLevel++;
+                    AppendJsonIndentation(builder, indentLevel);
+                    break;
+
+                case '}':
+                case ']':
+                    indentLevel = Math.Max(0, indentLevel - 1);
+                    if (previousNonWhitespace != '{' && previousNonWhitespace != '[')
+                    {
+                        builder.AppendLine();
+                        AppendJsonIndentation(builder, indentLevel);
+                    }
+
+                    builder.Append(character);
+                    break;
+
+                case ',':
+                    builder.Append(character);
+                    builder.AppendLine();
+                    AppendJsonIndentation(builder, indentLevel);
+                    break;
+
+                case ':':
+                    builder.Append(": ");
+                    break;
+
+                default:
+                    if (!char.IsWhiteSpace(character))
+                    {
+                        builder.Append(character);
+                    }
+                    break;
+            }
+
+            if (!char.IsWhiteSpace(character))
+            {
+                previousNonWhitespace = character;
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    private static void AppendJsonIndentation(StringBuilder builder, int indentLevel)
+    {
+        builder.Append(' ', indentLevel * 2);
     }
 
     private static JsonResponse<T> RequestJsonFromUrls<T>(IEnumerable<string> urls)
@@ -803,14 +899,14 @@ internal static class UpdateBetterBotProgram
             }
         }
 
-        throw new InvalidOperationException("All GitHub API requests failed." + Environment.NewLine + string.Join(Environment.NewLine, errors.ToArray()));
+        throw new InvalidOperationException("All upstream API requests failed." + Environment.NewLine + string.Join(Environment.NewLine, errors.ToArray()));
     }
 
     private static string GetDefaultBranch()
     {
         List<string> urls = new List<string>();
-        urls.Add(string.Format("https://gitee.com/api/v5/repos/{0}/{1}", MirrorOwner, Repo));
         urls.Add(string.Format("https://api.github.com/repos/{0}/{1}", Owner, Repo));
+        urls.Add(string.Format("https://gitee.com/api/v5/repos/{0}/{1}", MirrorOwner, Repo));
 
         try
         {
@@ -843,8 +939,8 @@ internal static class UpdateBetterBotProgram
             Console.WriteLine(string.Format("       Reading branch: {0}", branch));
             string encodedBranch = Uri.EscapeDataString(branch);
             List<string> urls = new List<string>();
-            urls.Add(string.Format("https://gitee.com/api/v5/repos/{0}/{1}/git/trees/{2}?recursive=1", MirrorOwner, Repo, encodedBranch));
             urls.Add(string.Format("https://api.github.com/repos/{0}/{1}/git/trees/{2}?recursive=1", Owner, Repo, encodedBranch));
+            urls.Add(string.Format("https://gitee.com/api/v5/repos/{0}/{1}/git/trees/{2}?recursive=1", MirrorOwner, Repo, encodedBranch));
 
             try
             {
